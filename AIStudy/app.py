@@ -233,11 +233,8 @@ client = genai.Client(api_key=API_KEY)
 # Updated model candidates for optimal speed and reliability
 MODEL_CANDIDATES = [
 
-    "gemini-2.5-flash",
-
+  
     "gemini-1.5-flash",
-
-    "gemini-1.5-pro",
 
 ]
 
