@@ -230,17 +230,14 @@ client = genai.Client(api_key=API_KEY)
 
 
 
-# These model IDs were shown in the available-model list from this project.
-
-# The app tries them in order. Availability and quota can still vary.
-
+# Updated model candidates for optimal speed and reliability
 MODEL_CANDIDATES = [
 
-    "gemini-3.6-flash",
+    "gemini-2.5-flash",
 
-    "gemini-3.7-flash",
+    "gemini-1.5-flash",
 
-    "gemini-3.8-flash",
+    "gemini-1.5-pro",
 
 ]
 
@@ -267,16 +264,6 @@ def _is_temporary_or_model_error(exc):
 
 
 def ask_ai(prompt):
-
-    """
-
-    Try each configured model. Briefly retry transient overload/rate-limit
-
-    errors, then move to the next model. No app-level output-token cap is set.
-
-    The provider/model may still impose its own limits.
-
-    """
 
     last_error = None
 
@@ -316,8 +303,6 @@ def ask_ai(prompt):
 
 
 
-                # Invalid credentials/permission cannot be fixed by switching models.
-
                 if any(term in msg for term in ("401", "403", "api key", "permission denied", "unauthorized")):
 
                     raise
@@ -336,13 +321,11 @@ def ask_ai(prompt):
 
                 if temporary and attempt == 0:
 
-                    time.sleep(1.5)
+                    time.sleep(1.0)
 
                     continue
 
 
-
-                # Move to next model after this model fails.
 
                 break
 
@@ -403,10 +386,12 @@ def run_ai_task(prompt):
 
 
 # ----------------------------- Sidebar -----------------------------
-# Apply dashboard navigation before creating the radio widget. Streamlit does
-# not allow changing a widget's session-state key after that widget is created.
+
 if "pending_page_nav" in st.session_state:
+
     st.session_state["page_nav"] = st.session_state.pop("pending_page_nav")
+
+
 
 with st.sidebar:
 
@@ -501,19 +486,34 @@ if page == "🏠 Home":
             )
 
             st.write("")
+
             target_pages = {
+
                 "AI Chatbot": "💬 AI Chatbot",
+
                 "Notes Summarizer": "📝 Notes Summarizer",
+
                 "Quiz Generator": "🧠 Quiz Generator",
+
                 "Study Planner": "📅 Study Planner",
+
             }
+
             if st.button(
+
                 f"Open {title} →",
+
                 key=f"open_{title.lower().replace(' ', '_')}",
+
                 use_container_width=True,
+
             ):
+
                 st.session_state["pending_page_nav"] = target_pages[title]
+
                 st.rerun()
+
+
 
     st.html(
 
@@ -581,8 +581,6 @@ elif page == "💬 AI Chatbot":
 
 
 
-        # Include only recent turns to preserve useful context without unbounded prompts.
-
         recent = st.session_state.chat_history[-10:]
 
         history_text = "\n\n".join(
@@ -610,8 +608,6 @@ For broad questions, cover the key aspects in an organized way; for simple quest
 If the user asks for complete code, provide complete code, not just a fragment.
 
 For official or changing facts that you cannot verify, clearly state uncertainty instead of inventing details.
-
-There is no app-defined output token cap in this request, though the model/API may impose its own limits.
 
 
 
